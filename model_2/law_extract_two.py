@@ -1,8 +1,8 @@
 from function_lib.functions import *
-from function_lib.rule_table import item_title_filter
+from function_lib.rule_table import item_title_filter, remove_special_character, remove_useless_desc
 import re
 
-keys = ['当', '应当', '方可', '不得', '禁止', '严禁', '可以', '可']
+keys = ['当', '应当', '方可', '不得', '禁止', '严禁', '可以']
 
 
 def info_extract(sentences):
@@ -112,10 +112,12 @@ def subject_condition_filter(s):
         sub = ''
         con = s
     con, sub = item_title_filter(con), item_title_filter(sub)
+    con, sub = remove_special_character(con), remove_special_character(sub)
     return con, sub
 
 
 def item_info_parse_j(text):
+    text = remove_useless_desc(text)
     sentences = sentence_split_j(text)
     templates = info_extract_j(sentences)
     return templates
@@ -124,8 +126,8 @@ def item_info_parse_j(text):
 
 # 未具体分析句子成分的情况下
 # 如果是（sub是空或者condition是空）
-#       如果（key词前面）的成分没有 的 就返回
-#  否则把从后往前的第一个 的 后面的作为主语，前面的作为条件
+# 如果（key词前面）的成分没有 的 就返回
+# 否则把从后往前的第一个 的 后面的作为主语，前面的作为条件
 def sentence_split_j(item):
     item = item_title_filter(item)
     sents = []
@@ -139,39 +141,43 @@ def sentence_split_j(item):
     role = ltp_srl['role']
 
     if role:
-        # sub_flag = 0
+        sub_beg_id = -1  # 记录主体单词开始位置的临时变量
+        sub_end_id = -1
         for i, r in enumerate(role):
             beg = r['beg']
             end = r['end']
             role_type = r['type']
             # relate = ltp_par[end]['relate']
             if role_type == 'A0':
-                if '<s>' in seg[beg]['word']:
-                    continue
-                # 提取主语
-                seg[beg]['word'] = '<s>' + seg[beg]['word']
-                seg[end]['word'] += '</s>'
+                if sub_beg_id == -1 and sub_end_id == -1 or (sub_end_id-sub_beg_id) < (end-beg) or beg >= sub_end_id \
+                        and (end-beg) > 0:  # 优先使用句子中靠后的A0和更长的A0作为主体
+                    sub_beg_id = beg
+                    sub_end_id = end
+
+        # 提取主语
+        if sub_beg_id != -1 and sub_end_id != -1:
+            seg[sub_beg_id]['word'] = '<s>' + seg[sub_beg_id]['word']
+            seg[sub_end_id]['word'] += '</s>'
+
         # print('seg:', seg)
         # 如果句子中有A0，应该从第一个A0处开始寻找
 
         sen = []
         for sw in seg:
             w = sw['word']
-            if '|' not in w:
-                sen.append(w)
-        else:
-            sents.append(sen)
-    return sents
+            sen.append(w)
 
-def info_extract_j(sentences):
+    return sen
+
+
+def info_extract_j(sen):
     # 检查句子中有几个key词
-    iskey = check_key(sentences)
-    # 此类分句情况下实际上sentences里只有一个list
-    sen = sentences[0]
+    iskey = check_key(sen)
+    # 此类分句情况下实际上sen里只有一个list
     tem_dict = dict()
     if iskey:
         for j in range(0, len(iskey)):
-            i = iskey[j]
+            i = iskey[j]  # 关键词的索引
             # 把key词前面的字符串提取出来
             before_key = ''.join(sen[:i])
             tem_dict['condition'], tem_dict['subject'] = subject_condition_filter(before_key)
@@ -189,12 +195,11 @@ def info_extract_j(sentences):
 
 
 # 检查句子中有没有key词，返回由所有key词组成的list
-def check_key(sentences):
+def check_key(sen):
     tem = []
-    for sen in sentences:
-        for i, word in enumerate(sen):
-            if word in keys:
-                tem.append(i)
+    for i, word in enumerate(sen):
+        if word in keys:
+            tem.append(i)
     return tem
 
 

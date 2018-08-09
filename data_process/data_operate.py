@@ -4,21 +4,7 @@ import re
 import uuid
 from function_lib import rule_table
 from model_2 import law_extract_two as lof
-
-conn = pymysql.connect(host="192.168.120.4", port=3306, user="root", password="root", db="flfgk", charset='utf8')
-
-
-def get_data_from_mysql(sql):
-    with conn.cursor() as cursor:
-        cursor.execute(sql)
-        records = cursor.fetchall()
-    return records
-
-
-def write_data_to_mysql(sql, args):
-    with conn.cursor() as cursor:
-        cursor.executemany(sql, args)
-        conn.commit()
+from function_lib.functions import *
 
 
 def write_to_file(res, path, flag=1):
@@ -30,7 +16,6 @@ def write_to_file(res, path, flag=1):
             else:
                 outfile.write(str(s).replace(r'\u3000', ' ') + '\n')
         print('lines:', len(res))
-
 
 
 # 驾驶机动车有下列情形之一的，处200元罚款

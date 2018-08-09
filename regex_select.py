@@ -1,5 +1,6 @@
 import re
 from function_lib.rule_table import *
+from function_lib.functions import *
 from model_1.law_extract_one import do_regex_one, law_item_parse_j
 from model_2.law_extract_two import do_regex_two, item_info_parse_j
 
@@ -34,11 +35,9 @@ def sentences_to_parts(line):
     # 如果有（一）……（十） 以及“以下”，“如下”等，则证明属于第一类，然后需要判断它是否应该属于在行为中，若是（一）……（十），则需要放在行为中
     # 否则需要再划分
 
-    line = line.strip().replace('；', '</p>').replace('。', '</p>').replace(' ', ''). \
+    content = line.strip().replace('；', '</p>').replace(' ', ''). \
         replace('“', '').replace('”', '').replace('\u3000', '').replace('<p>', '').replace('\ufeff', '')
 
-    # law_id, law_name = contents_temp[0], contents_temp[1]
-    content = line
 
     # 判断是否有model_1和model_2的句子
 
@@ -96,16 +95,15 @@ def sentences_to_parts_one(content):
 
 # 第二类
 def sentences_to_parts_two(line):
-    line = line.split('</p>')
+    lines = line.split('</p>')
     generated_final = []
     sub_temp = ''
-    for i, s in enumerate(line):
+    for i, s in enumerate(lines):
         if s == '':
             continue
-        s = s.replace('\u3000', '').replace('<p>', '').replace('</p>', '').replace(' ', '')
         # 主函数
         generated_template = item_info_parse_j(s)
-        # 若本句没有主语，则拿上一句的主语过来作为本句主语
+        # 用分号隔开的两句话，若本句没有主语，则拿上一句的主语过来作为本句主语
         if generated_template:
             if generated_template['subject'] != '':
                 sub_temp = generated_template['subject']
@@ -137,3 +135,11 @@ def law_to_sentence(sentence):
 
 if __name__ == '__main__':
     print()
+    get_sentence_sql = 'select item_id, sentence from law_item_split limit 0, 200'
+    sentences = get_data_from_mysql(get_sentence_sql)
+    # sentences = [('11','<p> 任何单位和个人不得强迫农民和农业生产经营组织购买其指定的农业机械产品</p>  ')]
+    for s in sentences:
+        item_id, content = s[0], s[1]
+        split_result = sentences_to_parts(content)
+        if split_result:
+            print(item_id, content, '\n', split_result, '\n')

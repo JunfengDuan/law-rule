@@ -1,6 +1,9 @@
 import re
 import requests
 import json
+import pymysql
+
+conn = pymysql.connect(host="192.168.120.4", port=3306, user="root", password="root", db="flfgk", charset='utf8')
 
 
 def ltp_tool(text, target):
@@ -30,3 +33,14 @@ def read_from_file(path):
         return infile.readlines()
 
 
+def get_data_from_mysql(sql):
+    with conn.cursor() as cursor:
+        cursor.execute(sql)
+        records = cursor.fetchall()
+    return records
+
+
+def write_data_to_mysql(sql, args):
+    with conn.cursor() as cursor:
+        cursor.executemany(sql, args)
+        conn.commit()

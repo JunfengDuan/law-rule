@@ -8,7 +8,7 @@ def number_zh_filter(s):
 
 # 去除句子首位的标点符号
 def remove_special_character(s):
-    return re.sub('^(，|；|。|：)+|(，|；|。|：)+$', '', s)
+    return re.sub('^(、|，|；|。|：)+|(、|，|；|。|：)+$', '', s)
 
 
 # 去除句子最后一个“的”字
@@ -21,6 +21,12 @@ def item_title_filter(s):
     return item
 
 
+# 去除条件中的描述性文字“四、增加一款，作为第二款：”
+# “第三款修改为：”
+def remove_useless_desc(s):
+    return re.sub('.*：', '', s)
+
+
 def remove_dun(s):
     return re.sub('^（[一二三四五六七八九十]+）', '', s)
 
@@ -30,7 +36,7 @@ def has_key_one(s):
     has_key_flag = False
     pattern = re.compile('（[一二三四五六七八九十]+）')
     sub_matcher = pattern.findall(s)
-    if sub_matcher.__len__() >= 1:
+    if len(sub_matcher) >= 1:
         has_key_flag = True
     return has_key_flag
 
@@ -46,7 +52,7 @@ def has_key_one_plus(s):
 
 
 def has_key_two(s):
-    keys = ['当', '应当', '方可', '不得', '禁止', '严禁', '可以', '可']
+    keys = ['当', '应当', '方可', '不得', '禁止', '严禁', '可以']
     has_key_flag = False
     for k in keys:
         if k in s:

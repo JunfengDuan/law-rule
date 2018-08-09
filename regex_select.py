@@ -3,6 +3,7 @@ from function_lib.rule_table import *
 from function_lib.functions import *
 from model_1.law_extract_one import do_regex_one, law_item_parse_j
 from model_2.law_extract_two import do_regex_two, item_info_parse_j
+import uuid
 
 regex1 = '.*(下列|以下|如下).*'
 
@@ -43,8 +44,8 @@ def sentences_to_parts(line):
 
     if has_key_one(content) and has_key_one_plus(content):
         generate_temp = sentences_to_parts_one(content)
-    elif has_key_two(content):
-        generate_temp = sentences_to_parts_two(content)
+    # elif has_key_two(content):
+    #     generate_temp = sentences_to_parts_two(content)
     return generate_temp
 
 
@@ -77,12 +78,12 @@ def sentences_to_parts_one(content):
             content_temp += item + '</p>'
             num_flag = 1
         # 未检测到（一）……（十）前要一直用content_temp存储
-        elif (has_key_one(item) == False) and beg_flag == 1 and num_flag == 0:
+        elif (has_key_one(item) is False) and beg_flag == 1 and num_flag == 0:
             content_temp += item
             content_temp = re.sub('</p>', '，', content_temp)
             content_temp += '</p>'
         # 处理content_temp
-        elif (has_key_one(item) == False) and beg_flag == 1 and num_flag == 1:
+        elif (has_key_one(item) is False) and beg_flag == 1 and num_flag == 1:
             generated_template.append(law_item_parse_j(content_temp))
             content_temp = ''
             beg_flag = 0
@@ -120,26 +121,32 @@ def law_to_sentence(sentence):
     :return: 拆分后的句子列表
     """
     line = sentence.strip().replace(' ', '').replace('“', '').replace('”', '').replace('\u3000', '')\
-        .replace('\ufeff', '').replace('\n', '')
+        .replace('\n', '').replace('\ufeff', '')
 
     con = line.split('。')
 
     # sen是句子对应的list，sen_id是句子对应的id的list
-    sen = []
+    sens = []
     for c in con:
+        id_sen = dict()
         if c == '<p>' or c == '</p>' or len(c) <= 1:
             continue
-        sen.append(c)
-    return sen
+        sentence_id = str(uuid.uuid1())
+        id_sen[sentence_id] = c
+        sens.append(id_sen)
+    return sens
 
 
 if __name__ == '__main__':
     print()
-    get_sentence_sql = 'select item_id, sentence from law_item_split limit 0, 200'
-    sentences = get_data_from_mysql(get_sentence_sql)
-    # sentences = [('11','<p> 任何单位和个人不得强迫农民和农业生产经营组织购买其指定的农业机械产品</p>  ')]
-    for s in sentences:
-        item_id, content = s[0], s[1]
-        split_result = sentences_to_parts(content)
-        if split_result:
-            print(item_id, content, '\n', split_result, '\n')
+    get_sentence_sql = 'select item_id, sentence from law_item_split limit 0, 500'
+    # sentences = get_data_from_mysql(get_sentence_sql)
+    sentences = [('11','机动车驾驶人有下列情形之一的，处一百元罚款：</p><p>　　（一）不按交通标志、标线指示通行的；</p><p>　。　（二）驾驶时不按规定依次交替通行或者在人行横道、网状线区域内停车等候的；</p><p>　　（三）不 ')]
+    # for s in sentences:
+    #     item_id, content = s[0], s[1]
+    #     split_result = sentences_to_parts(content)
+    #     if split_result:
+    #         print(item_id, content, '\n', split_result, '\n')
+
+    s = law_to_sentence(sentences[0][1])
+    print(s)

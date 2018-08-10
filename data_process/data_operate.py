@@ -5,7 +5,7 @@ import uuid
 from function_lib import rule_table
 from model_2 import law_extract_two as lof
 from function_lib.functions import *
-
+from regex_select import sentences_to_parts
 
 def write_to_file(res, path, flag=1):
 
@@ -36,30 +36,30 @@ def not_filter(sentences, reg):
             data.append(s)
     return data
 
-def build_condition(condition_id, item_id, condition):
+def build_condition(condition_id, sentence_id, condition):
     condition_sql = 'insert into lawcrf_condition values (%s,%s,%s)'
-    condition_args = [condition_id, str(item_id), condition]
+    condition_args = [condition_id, str(sentence_id), condition]
     write_data_to_mysql(condition_sql, [condition_args])
 
 
-def build_subject(subject_id, item_id,  subject):
+def build_subject(subject_id, sentence_id,  subject):
     subject_sql = 'insert into lawcrf_subject values (%s,%s,%s)'
-    subject_args = [subject_id, str(item_id), subject]
+    subject_args = [subject_id, str(sentence_id), subject]
     write_data_to_mysql(subject_sql, [subject_args])
 
-def build_behavior(behavior_id, item_id, behavior, condition_id, subject_id, result_id, key_id=None):
+def build_behavior(behavior_id, sentence_id, behavior, condition_id, subject_id, result_id, key_id=None):
     behavior_sql = 'insert into lawcrf_behavior values (%s,%s,%s,%s,%s,%s,%s)'
-    behavior_args = [behavior_id, str(item_id), behavior, condition_id, subject_id, result_id,  key_id]
+    behavior_args = [behavior_id, str(sentence_id), behavior, condition_id, subject_id, result_id,  key_id]
     write_data_to_mysql(behavior_sql, [behavior_args])
 
-def build_result(result_id, item_id, result):
+def build_result(result_id, sentence_id, result):
     result_sql = 'insert into lawcrf_result values (%s,%s,%s)'
-    result_args = [result_id, str(item_id), result]
+    result_args = [result_id, str(sentence_id), result]
     write_data_to_mysql(result_sql, [result_args])
 
-def build_key(key_id, item_id, key):
+def build_key(key_id, sentence_id, key):
     key_sql = 'insert into lawcrf_key values (%s,%s,%s)'
-    key_args = [key_id, str(item_id), key]
+    key_args = [key_id, str(sentence_id), key]
     write_data_to_mysql(key_sql, [key_args])
 
 
@@ -69,7 +69,7 @@ def full_result_1(data):
     print('data size:', len(data))
     for i, t in enumerate(data[:]):
         print(str(i) + '--' + str(t))
-        item_id = t[0]
+        sentence_id = t[0]
         full_result = t[1]
         # full_result = full_result.replace("'", '"')
         # full_result_dict = json.loads(full_result, encoding='UTF-8')
@@ -85,30 +85,30 @@ def full_result_1(data):
         condition_id = None
         if len(condition) > 1:
             condition_id = str(uuid.uuid1())
-            build_condition(condition_id, item_id, condition)
+            build_condition(condition_id, sentence_id, condition)
 
         result_id = None
         if len(result) > 1:
             result_id = str(uuid.uuid1())
-            build_result(result_id, item_id, result)
+            build_result(result_id, sentence_id, result)
 
         subject_id = None
         if isinstance(subject, str):
             if len(subject) > 1:
                 subject_id = str(uuid.uuid1())
-                build_subject(subject_id, item_id, subject)
+                build_subject(subject_id, sentence_id, subject)
             if behavior:
                 for be in behavior:
                     behavior_id = str(uuid.uuid1())
-                    build_behavior(behavior_id, item_id, be, condition_id, subject_id, result_id,  None)
+                    build_behavior(behavior_id, sentence_id, be, condition_id, subject_id, result_id,  None)
         elif isinstance(subject, list):
             for i, su in enumerate(subject):
                 if su != '':
                     subject_id = str(uuid.uuid1())
-                    build_subject(subject_id, item_id, su)
+                    build_subject(subject_id, sentence_id, su)
                 if behavior:
                     behavior_id = str(uuid.uuid1())
-                    build_behavior(behavior_id, item_id, behavior[i], condition_id, subject_id, result_id, None)
+                    build_behavior(behavior_id, sentence_id, behavior[i], condition_id, subject_id, result_id, None)
 
 
 def full_result_2(data):
@@ -117,7 +117,7 @@ def full_result_2(data):
     print('data size:', len(data))
     for i, t in enumerate(data[:]):
         print(str(i) + '--' + str(t))
-        item_id = t[0]
+        sentence_id = t[0]
         full_result = t[1]
         # full_result = full_result.replace("'", '"')
         for re in full_result:
@@ -131,18 +131,18 @@ def full_result_2(data):
             key = full_result_dict['key']
 
             condition_id = str(uuid.uuid1())
-            build_condition(condition_id, item_id, condition)
+            build_condition(condition_id, sentence_id, condition)
 
             subject_id = str(uuid.uuid1())
-            build_subject(subject_id, item_id, subject)
+            build_subject(subject_id, sentence_id, subject)
 
             result_id = None
 
             key_id = str(uuid.uuid1())
-            build_key(key_id, item_id, key)
+            build_key(key_id, sentence_id, key)
 
             behavior_id = str(uuid.uuid1())
-            build_behavior(behavior_id, item_id, behavior, condition_id, subject_id, result_id, key_id)
+            build_behavior(behavior_id, sentence_id, behavior, condition_id, subject_id, result_id, key_id)
 
 
 def model_result_parse(data_path, n):
@@ -201,14 +201,16 @@ def four_law_parse_from_file():
     full_result_1(data_1)
     full_result_2(data_2)
 
-def four_law_parse_from_db():
-    sql = 'select id, law_id, item_id, item from law_item_split'
+
+# 所有法条，按照三种句模，执行成分标注
+def all_law_parse(sql):
+    # sql = 'select id, law_id, item_id, sentence from law_item_split'
     four_law_data = get_data_from_mysql(sql)
     data_1 = []
     data_2 = []
     for line in four_law_data[:]:
-        s_id, law_id, item_id, content = line[0], line[1], line[2], line[3]
-        result, num = rule_table.extract_by_regex(content)
+        s_id, law_id, item_id, sentence = line[0], line[1], line[2], line[3]
+        result, num = sentences_to_parts(sentence)
         if not result:
             continue
         if num == 1:
@@ -309,6 +311,12 @@ if __name__ == '__main__':
     # four_law_parse()
     # four_law_split()
     # four_law_parse_from_db()
+
+    size = 100000
+    step = 10
+    for i in range(size):
+        sql = 'select id, law_id, item_id, sentence from law_item_split limit ' + i*step + ', ' + step
+        # all_law_parse(sql)
 
 
 

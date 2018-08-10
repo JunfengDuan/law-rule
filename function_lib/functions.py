@@ -22,6 +22,8 @@ def ltp_tool(text, target):
     if res.status_code == 200:
         ltp_result_json = res.text.replace("'", '"')
         # print('ltp_result_json:', ltp_result_json)
+        if not ltp_result_json:
+            return None
         ltp_result_dict = json.loads(ltp_result_json, encoding='UTF-8')
         return ltp_result_dict
     else:

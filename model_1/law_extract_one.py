@@ -62,12 +62,13 @@ def first_item_filter(sentence):
     :return:
     """
     data = []
-    reg = '(.*)(下列|以下|如下)(.*)'
+    reg = '(.*?)(有下列情形之一的|有下列行为|下列情形|下列|以下|如下).*?(，|：)(.*)'
 
     matcher = re.match(reg, sentence)
     if matcher:
         data.append(matcher.group(1))
-        data.append(matcher.group(3))
+        data.append(matcher.group(4))
+
     return data
 
 

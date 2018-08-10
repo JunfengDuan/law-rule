@@ -27,6 +27,10 @@ def remove_useless_desc(s):
     return re.sub('.*：', '', s)
 
 
+def condition_trim(s):
+    return re.sub('(，|：).*', '', s)
+
+
 def remove_dun(s):
     return re.sub('^（[一二三四五六七八九十]+）', '', s)
 

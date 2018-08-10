@@ -1,8 +1,15 @@
 # 法律法条信息抽取工具
 
 ## Request url
-http://host:8084/tagging
-(只支持http， 不能用https)
+句子标注：
+
+URL: http://host:8484/tagging (只支持http， 不能用https)
+请求格式：{"text":""}
+
+句子拆分：
+URL: http://host:8484/splitting 
+请求格式：{"text":""}
+
 
 ## Request data
 application/json

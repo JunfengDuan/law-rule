@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
-from regex_select import tag_by_regex, law_to_sentence
+from regex_select import sentences_to_parts, law_to_sentence
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -16,9 +16,11 @@ def tagging():
         return ""
 
     data = dict()
-    for s_id, sentence in law_sentence.items():
-        result, _ = tag_by_regex(sentence)
-        data[s_id] = result
+    for key, sentence in law_sentence.items():
+        result, flag = sentences_to_parts(sentence)
+        if result:
+            data['data'] = result
+            data['flag'] = flag
     return str(data)
 
 
@@ -32,9 +34,10 @@ def splitting():
         return ""
 
     data = dict()
-    for item_id, item in law_items.items():
-        result = law_to_sentence(item)
-        data[item_id] = result
+    for key, item in law_items.items():
+        ids, sentences = law_to_sentence(item)
+        data['ids'] = ids
+        data['sentences'] = sentences
     return str(data)
 
 

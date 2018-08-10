@@ -139,6 +139,7 @@ def sentence_split_j(item):
     # 按照srl方法拆分
     seg = ltp_srl['seg']
     role = ltp_srl['role']
+    sen = []
 
     if role:
         sub_beg_id = -1  # 记录主体单词开始位置的临时变量
@@ -162,7 +163,6 @@ def sentence_split_j(item):
         # print('seg:', seg)
         # 如果句子中有A0，应该从第一个A0处开始寻找
 
-        sen = []
         for sw in seg:
             w = sw['word']
             sen.append(w)

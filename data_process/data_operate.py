@@ -145,6 +145,10 @@ def full_result_2(data):
             build_behavior(behavior_id, sentence_id, behavior, condition_id, subject_id, result_id, key_id)
 
 
+def full_result_3(s):
+    pass
+
+
 def model_result_parse(data_path, n):
     start = time.time()
     lines = read_from_file(data_path)
@@ -208,6 +212,8 @@ def all_law_parse(sql):
     four_law_data = get_data_from_mysql(sql)
     data_1 = []
     data_2 = []
+    data_3 = []
+
     for line in four_law_data[:]:
         s_id, law_id, item_id, sentence = line[0], line[1], line[2], line[3]
         result, num = sentences_to_parts(sentence)
@@ -217,11 +223,15 @@ def all_law_parse(sql):
             data_1.append([s_id, result])
         elif num == 2:
             data_2.append([s_id, result])
+        elif num == 3:
+            data_3.append([s_id, result])
 
     print('data_1', data_1)
     print('data_2', data_2)
     full_result_1(data_1)
     full_result_2(data_2)
+    full_result_3(data_3)
+
 
 def take_out_colon(num, item):
     num1 = ''

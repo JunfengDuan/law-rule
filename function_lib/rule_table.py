@@ -64,3 +64,23 @@ def has_key_two(s):
             break
     return has_key_flag
 
+
+def has_key_three(s):
+    reg = '(.*?)(由|按照)(.*)'
+    return re.match(reg, s)
+
+
+def filter_three(sentence):
+    """
+    :param sentence:
+    :return:
+    """
+    data = []
+    reg = '(.*?)(由|按照)(.*)'  # 匹配到第一个停下来
+
+    matcher = re.match(reg, sentence)
+    if matcher:
+        data.append(matcher.group(1))
+        data.append(matcher.group(2))
+        data.append(matcher.group(3))
+    return data

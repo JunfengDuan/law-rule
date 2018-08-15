@@ -8,6 +8,8 @@ def sentences_to_parts_three(sentences):
     templates_list = []
     for sentence in sentences:
         templates = dict()
+        # if filter_three_plus(sentence):  # 过滤有‘由于，缘由，理由，自由等的句子’
+        #     break
         line = sentence.strip().replace('<p>', '').replace('\u3000', '')
         if line:
             first_item = item_title_filter(line)  # 过滤第.*条
@@ -35,16 +37,16 @@ def sentences_to_parts_three(sentences):
                         if beg >= key_id:
                             sub = ''.join([n['word'] for n in seg[key_id+1:end+1]])
                         else:
-                            continue
+                            sub = ''.join([n['word'] for n in seg[beg:end + 1]])
                         be = behavior.replace(sub, '')
-                        condition = remove_dun(remove_special_character(first_segs[0]))
+                        condition = remove_dun(remove_special_character(first_segs[0].replace(sub, '')))
                         templates['condition'], templates['subject'], templates['key'], templates['behavior'] = \
                             condition, sub, key, be
                         break
                     else:
                         condition = remove_dun(remove_special_character(first_segs[0]))
                         templates['condition'], templates['subject'], templates['key'], templates['behavior'] = \
-                                condition, '', key, behavior
+                            condition, '', key, behavior
 
             templates_list.append(templates)
 
@@ -52,11 +54,11 @@ def sentences_to_parts_three(sentences):
 
 
 def do():
-    lines = read_from_file('../sentence_parse/not_parse.txt')
+    lines = read_from_file('not_parse.txt')
     count = lines.__len__()
     print(count)
     num = 0
-    for line in lines[:]:
+    for line in lines:
         # contents = line.split('\t')
         # law_id, item_id, title, content = contents[0], contents[1], contents[2], contents[3]
         generated_template = sentences_to_parts_three(line)
@@ -75,6 +77,6 @@ if __name__ == '__main__':
     #     for i, r in enumerate(do()):
     #         print(i, r)
     #         # out.write(r + '\n')
-    str_tnp = '11279201 <p>退回商品的运费由消费者承担；经营者和消费者另有约定的，按照约定。</p> '
+    str_tnp = '第四十条使用全民所有的水域、滩涂从事养殖生产，无正当理由使水域、滩涂荒芜满一年的，由发放养殖证的机关责令限期开发利用'
     templte = sentences_to_parts_three([str_tnp])
     print(templte)

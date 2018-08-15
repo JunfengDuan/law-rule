@@ -26,7 +26,7 @@ def law_item_parse(item):
         key_id = 0
         if seg:
             for n in seg:
-                if n['word'] == '下列':
+                if n['word'] in key1:  # 应该为关键字列表
                     key_id = n['id']
                     break
         roles = ltp_result_dict['role']
@@ -159,8 +159,10 @@ def law_item_parse_j(lines):
                 beh = []
                 for tiao in items:
                     beh.append(tiao)
+                if len(template.condition)<=1:
+                    template.condition = ''
                 templates['condition'], templates['subject'], templates['behavior'], templates['result'] = \
-                     template.condition, template.subject, beh, template.result
+                    template.condition, template.subject, beh, template.result
     return templates
 
 

@@ -1,7 +1,7 @@
 from function_lib.functions import *
 from function_lib.rule_table import item_title_filter, remove_special_character, remove_useless_desc
 import re
-
+from function_lib.rule_table import remove_last_de
 keys = ['当', '应当', '方可', '不得', '禁止', '严禁', '可以']
 
 
@@ -122,6 +122,7 @@ def item_info_parse_j(text):
     templates = info_extract_j(sentences)
     return templates
 
+
 # 分离句子成分
 
 # 未具体分析句子成分的情况下
@@ -181,6 +182,7 @@ def info_extract_j(sen):
             # 把key词前面的字符串提取出来
             before_key = ''.join(sen[:i])
             tem_dict['condition'], tem_dict['subject'] = subject_condition_filter(before_key)
+            tem_dict['condition'] = remove_last_de(tem_dict['condition'])
             # 如果subject未能提取出来，并且还没到最后一个key词，则继续
             if (tem_dict['subject'] == '') and (j < len(iskey) - 1):
                 continue

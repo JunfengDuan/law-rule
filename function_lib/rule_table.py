@@ -75,12 +75,66 @@ def filter_three(sentence):
     :param sentence:
     :return:
     """
-    data = []
     reg = '(.*?)(由|按照)(.*)'  # 匹配到第一个停下来
+    pattern = re.compile(reg)
 
+    matcher = re.match(pattern, sentence)
+    plus_result = filter_three_plus(sentence)
+    if plus_result:
+        data = []
+        matcher_2 = re.match(pattern, plus_result[2])
+        if plus_result[1] == '理由' and matcher_2:
+            st = ''.join(item for item in plus_result[:2])  # 如果一个句子中同时有‘理由’和‘由’，用st拿到‘由’前面的数据
+            st += matcher_2.group(1)
+            data.append(st)
+            data.append(matcher_2.group(2))
+            data.append(matcher_2.group(3))
+            return data
+    elif matcher:
+        data = []
+        data.append(matcher.group(1))
+        data.append(matcher.group(2))
+        data.append(matcher.group(3))
+        return data
+
+
+def filter_three_plus(sentence):
+    """
+    :param sentence:
+    :return:
+    """
+    data = []
+    reg = '(.*?)(由于|理由|缘由|自由)(.*)'
     matcher = re.match(reg, sentence)
     if matcher:
         data.append(matcher.group(1))
         data.append(matcher.group(2))
         data.append(matcher.group(3))
     return data
+
+
+def filter_four(sentence):
+    data = []
+    reg = '(.*?)(责令|没收)(.*)'
+    matcher = re.match(reg, sentence)
+    if matcher:
+        data.append(matcher.group(1))
+        data.append(matcher.group(2))
+        data.append(matcher.group(3))
+    return data
+
+
+def has_four_plus(sentence):
+    keys = ['全民']
+    has_key_flag = False
+    for k in keys:
+        if k in sentence:
+            has_key_flag = True
+            break
+    return has_key_flag
+
+
+if __name__=='__main__':
+    st = '未依法取得养殖证或者超越养殖证许可范围在全民所有的水域从事养殖阿生产，妨碍航运、行洪的'
+    st = remove_last_de(st)
+    print(st)
